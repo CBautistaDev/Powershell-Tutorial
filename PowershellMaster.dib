@@ -1,0 +1,266 @@
+#!markdown
+
+# Powershell Master Class
+[Youtube] (https://www.youtube.com/watch?v=sQm4zRvvX58&list=PLlVtbbG169nFq_hR7FcMYg32xsSAObuq)
+
+#!markdown
+
+## Video 1 
+[Youtube] (https://www.youtube.com/watch?v=sQm4zRvvX58&list=PLlVtbbG169nFq_hR7FcMYg32xsSAObuq)
+
+#!pwsh
+
+Write-Output "Hello World"
+
+#!markdown
+
+select is the same as Select-Object
+
+sort is same as Sort-Object
+
+#!markdown
+
+### Getting help
+
+#!pwsh
+
+Get-Help Get-Process -Examples
+
+#!markdown
+
+Sometimes help may need to be updated to get full help details
+
+#!pwsh
+
+Get-Help update
+
+#!markdown
+
+# Video 2 Connecting commands together and Mastering objects
+https://www.youtube.com/watch?v=K_LsLq5yGgk&list=PLlVtbbG169nFq_hR7FcMYg32xsSAObuq8&index=2
+
+#!markdown
+
+Keeping objects as objects as long as possible
+
+#!pwsh
+
+Get-Process a* | Get-Member
+#property 
+#methods
+
+#!pwsh
+
+Get-Process | where-object {$_.Name -eq "notepad"} | GM
+
+#!pwsh
+
+Get-Process | sort-object -property name|  where-object {$_.Name -eq "notepad"}
+
+#!markdown
+
+Try to filter as much to the left as possible saves computational power
+
+#!pwsh
+
+Get-Process -name  notepad | Sort-Object -Property id
+
+#!markdown
+
+The Pipeline
+> powershell commands within a session keeps the output as objects
+
+> These objects can be passsed along the pipeline to be manipulated by later commands
+
+> Can check the types of an object
+
+<<var>>.GetType()
+
+<<var>>.GetType().fullname
+
+#!pwsh
+
+$f = Get-Process
+$f.GetType()
+
+#!pwsh
+
+#first gets all the process then uses select to filter by the name and changed the id to procID
+#can be usefull if pipping command to antother cmdlet only accepts certain neamed properties 21:48
+Get-Process | Select-Object -Property name, @{name='procId'; expression={$_.id}}
+
+#!pwsh
+
+#using where-object
+Get-Process | Where-Object {$_.Id -gt 1} | Sort-Object -Property Id | FT name, id -AutoSize
+
+#!pwsh
+
+#using where
+Get-Process | where id -gt 10000 | Sort-Object -Property Id | FT name, id -AutoSize
+
+#!markdown
+
+## Default Pipeline output
+
+> Various different Out ver cmdlets
+
+
+> The default is Out-default
+
+
+> this direct to out-host
+
+Out-Null to suppress
+
+Out-gridview to send to screen only on powershell windows
+
+#!markdown
+
+## Export 
+
+#!markdown
+
+## Limititng objects returned 
+
+> Can use `sort-obect`
+
+> Then conbtine with `-descending -acending`
+
+> sent to `Select-Object` with -first n -last n
+
+#!pwsh
+
+Get-Process | Sort-Object -Descending -Property StartTime | Select-Object -First 5
+
+#!pwsh
+
+# can use measure-object to count output
+Get-Process | Measure-Object WS -Sum   
+
+#!markdown
+
+## Compare Objects
+
+> often you may wish to compare data
+
+> `Compare-Object` can be used to compare
+
+> You can select how the compare of objects works
+
+- Property name finds the difference in instances of objects in the results
+- without this any change would be displayed
+
+#!pwsh
+
+$procs = Get-Process
+
+#!pwsh
+
+$procs2 = Get-Process
+
+#!pwsh
+
+Compare-Object -ReferenceObject $procs -DifferenceObject $procs2 -Property Name
+
+#!pwsh
+
+$ConfirmPreference
+
+#!pwsh
+
+Get-Service | Where-Object {$_.Status -eq "Stopped"}
+
+#!pwsh
+
+Get-Service | where status -eq "Stopped"
+
+#!markdown
+
+## Getting ready for DevOps
+
+#!markdown
+
+## PowerShell Scripting
+
+#!markdown
+
+> Region enable code to be "folded" within ISE and VS Code 
+
+> Signed Scripts 
+* Get-ExectionPolicy
+* Set-ExectionPolicy
+> RemoteSigned(trusted,publisher for external scripts)
+
+> AllSigned(trusted publisher for any script including your own)
+
+> Unrestricted(run anything and not recommended)
+
+* For our testing set to remoteSigned
+* RemoteSigned is the default 
+
+#!pwsh
+
+Set-ExecutionPolicy | Get-Help
+
+#!markdown
+
+## **Always use write-out supports object flow**
+
+#!pwsh
+
+Write-Host "You are looking " -NoNewline 
+Write-Host "Awesome" -ForegroundColor Red -BackgroundColor Yellow -NoNewline 
+Write-Host " Today"
+
+# Good alternative 
+Write-Warning "hello warning"
+Write-Error "Hello"
+
+#!markdown
+
+## Prompting the user
+> `read-host` is an easy way to get input
+
+> Possible to add `-AsSecureString` to avoide displaying to screen and storing securely
+
+#!pwsh
+
+$name = Read-Host "Who are you?"
+
+#!pwsh
+
+$pass = Read-Host "What is your password?" -AsSecureString
+
+#!pwsh
+
+#script with params
+Param([string] $computerName='localhost')
+Get-WmiObject -class Win32_Computersystem - computerName $computerName | Format-Table numberofprocessors,totalphysicalmemory
+
+#!pwsh
+
+class Device {
+    [string]$Brand
+}
+
+$dev = [Device]::new()
+$dev.Brand = "Microsoft"
+$dev
+
+#!pwsh
+
+Param(
+    [Parameter(Mandatory = $true)]
+    [string[]] $computerName='localhost'
+)
+foreach ($name in $computerName) {
+   $wub32csOUT= Get-CimInstance -class Win32_Computersystem -computerName $name 
+   $wub32OSOUT = Get-CimInstance -class win32_operatingSystem -computerName $name 
+
+
+   $dev = [Device]::new()
+   $dev.Brand = $computerName;
+
+    Write-Output  $dev
+}

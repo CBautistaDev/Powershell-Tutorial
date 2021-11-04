@@ -1,0 +1,91 @@
+#!markdown
+
+https://docs.microsoft.com/en-us/powershell/scripting/learn/deep-dives/everything-about-exceptions?view=powershell-7.1
+
+#!pwsh
+
+#can error to my own variable
+Get-content -Path dkdk -ErrorVariable badthings 
+if($badthings){
+Write-Host -ForegroundColor Blue -BackgroundColor White "had an issue $($badthings.Exception.Message)"
+}
+
+#!pwsh
+
+#better option is to do try catch
+try{
+    #catches terminating errors only. Need to make this commant a terminating command -ErrorAction Stop
+    Get-Content -path dkdk -ErrorAction Stop
+}catch{
+    Write-Output "Something went wrong"
+}
+
+#!markdown
+
+## Their are different options to errocations
+> for example -ErrorAction SilentlyContinue
+
+#!pwsh
+
+#continues even if error 
+Get-Content -path  jdjdjd -ErrorAction SilentlyContinue
+Get-Error
+
+#!pwsh
+
+#can control the message in catch
+try{
+    Get-Content -path djdjd -ErrorAction Stop
+}catch{
+    $errorMessage = $_.Exception.Message
+    Write-Output "Something went wrong - $ErrorMessage"
+    Write-Host -ForegroundColor Blue -BackgroundColor White $_.Exception #Entire exception
+    $PSItem.InvocationInfo | Format-List * # can also use $psitem instead of $_
+}
+
+#!pwsh
+
+#catch can be used with specific types of exception but needs to be terminating type
+try{
+    adkdkd
+}catch [System.Management.Automation.CommandNotFoundException]{
+    Write-Output "No idea what this command is"
+}catch{
+    $_.Exception
+}
+
+#!markdown
+
+#can check error action preference with #ErrorActionPreference
+
+#!pwsh
+
+# this can be usefull when we cannot set ErrorAction a non-powershell call
+try{
+    $currentEAPreference = $ErrorActionPreference
+    $ErrorActionPreference = "Stop"
+    Get-Content -Path dkdkdkd
+}catch {
+    Write-Output "Something went wrong"
+    Write-Host -ForegroundColor Blue -BackgroundColor White $_.Exception.Message
+}Finally{
+    $ErrorActionPreference = $currentEAPreference
+}
+
+#!pwsh
+
+ $ErrorActionPreference
+
+#!pwsh
+
+function Get-RadmonMessageSad{
+    $number = Get-Random -Maximum 10
+
+    swith($number){
+        {$_ -lt 4} { Write-Output "Howdy Yall"}
+           
+
+    }
+
+
+}
